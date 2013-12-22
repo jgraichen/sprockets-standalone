@@ -118,7 +118,7 @@ module Sprockets
 
         if files[path] && (digest = files[path]['digest'])
           if digest == asset.digest && File.exists?(target)
-            logger.info "Skipping #{target}, up-to-date"
+            logger.debug "Skipping #{target}, up-to-date"
             return
           end
         end
