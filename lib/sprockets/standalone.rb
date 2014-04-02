@@ -30,6 +30,9 @@ module Sprockets
 
       # `Environment` instance used for finding assets.
       attr_accessor :environment
+      
+      # If assets should also be compressed with GunZip (gz). Default is false.
+      attr_accessor :compress
 
       def index
         @index ||= environment.index if environment
