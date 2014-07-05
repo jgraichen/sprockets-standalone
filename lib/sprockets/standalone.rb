@@ -28,6 +28,9 @@ module Sprockets
       # If assets should include digest. Default is false.
       attr_accessor :digest
 
+      # If assets should be compressed. Default is false.
+      attr_accessor :compress
+
       # `Environment` instance used for finding assets.
       attr_accessor :environment
 
