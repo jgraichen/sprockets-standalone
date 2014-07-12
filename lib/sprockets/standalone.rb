@@ -33,6 +33,9 @@ module Sprockets
 
       # `Environment` instance used for finding assets.
       attr_accessor :environment
+      
+      # If assets should also be compressed with GunZip (gz). Default is false.
+      attr_accessor :compress
 
       def index
         @index ||= environment.index if environment
@@ -129,7 +132,6 @@ module Sprockets
         files[path] = {
           'logical_path' => asset.logical_path,
           'mtime'        => asset.mtime.iso8601,
-          'size'         => asset.bytesize,
           'digest'       => asset.digest
         }
         assets[asset.logical_path] = path
