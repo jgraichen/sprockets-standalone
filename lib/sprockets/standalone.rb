@@ -25,21 +25,18 @@ module Sprockets
       # working directory.
       attr_accessor :output
 
-      # If assets should include digest. Default is false.
-      attr_accessor :digest
-
-      # If assets should be compressed. Default is false.
-      attr_accessor :compress
-
       # `Environment` instance used for finding assets.
       attr_accessor :environment
+
+      # Full path to the manifest json file
+      attr_accessor :manifest_name
 
       def index
         @index ||= environment.index if environment
       end
 
       def manifest
-        @manifest ||= Sprockets::Standalone::Manifest.new index, File.join(output, "manifest.json")
+        @manifest ||= Sprockets::Manifest.new index, File.join(output, manifest_name)
       end
 
       def initialize(*args)
@@ -47,8 +44,7 @@ module Sprockets
         @assets      = %w(application.js application.css *.png *.jpg *.gif)
         @sources     = []
         @output      = File.expand_path('dist', Dir.pwd)
-        @digest      = false
-        @compress    = false
+        @manifest_name    = 'manifest.json'
 
         @environment = Sprockets::Environment.new(Dir.pwd) do |env|
           env.logger = Logger.new $stdout
@@ -58,9 +54,6 @@ module Sprockets
         yield self, environment if block_given?
 
         Array(sources).each { |source| environment.append_path source }
-
-        manifest.compress_assets = !!@compress
-        manifest.digest_assets   = !!@digest
 
         namespace @namespace do
           desc 'Compile assets'
@@ -78,65 +71,6 @@ module Sprockets
             manifest.clean
           end
         end
-      end
-    end
-
-    class Manifest < ::Sprockets::Manifest
-      attr_writer :digest_assets
-      def digest_assets?
-        !!@digest_assets
-      end
-
-      attr_writer :compress_assets
-      def compress_assets?
-        !!@compress_assets
-      end
-
-      def compile(*args)
-        unless environment
-          raise Error, "manifest requires environment for compilation"
-        end
-
-        paths = environment.each_logical_path(*args).to_a +
-          args.flatten.select { |fn| Pathname.new(fn).absolute? if fn.is_a?(String)}
-
-        if (missing_paths = (args.reject{|p| p.include?('*')} - paths)).any?
-          missing_paths.each do |path|
-            logger.warn "Asset #{path} not found."
-          end
-        end
-
-        paths.each do |path|
-          if asset = find_asset(path)
-            compile_asset asset
-          end
-        end
-        save
-        paths
-      end
-
-      def compile_asset(asset)
-        path   = digest_assets? ? asset.digest_path : asset.logical_path
-        target = File.join(dir, path)
-
-        if files[path] && (digest = files[path]['digest'])
-          if digest == asset.digest && File.exists?(target)
-            logger.debug "Skipping #{target}, up-to-date"
-            return
-          end
-        end
-
-        files[path] = {
-          'logical_path' => asset.logical_path,
-          'mtime'        => asset.mtime.iso8601,
-          'size'         => asset.length,
-          'digest'       => asset.digest
-        }
-        assets[asset.logical_path] = path
-
-        logger.info "Writing #{target}"
-        asset.write_to target
-        asset.write_to "#{target}.gz" if asset.is_a?(BundledAsset) && compress_assets?
       end
     end
   end
