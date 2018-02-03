@@ -27,8 +27,7 @@ Sprockets::Standalone::RakeTask.new(:assets) do |task, sprockets|
   task.assets   = %w(app.js app.css *.png *.svg *.woff)
   task.sources  = %w(app/assets vendor/assets)
   task.output   = File.expand_path('../assets', __FILE__)
-  task.compress = false
-  task.digest   = false
+  task.manifest_name  = 'manifest.json'
 
   sprockets.js_compressor  = :uglifier
   sprockets.css_compressor = :sass
@@ -45,15 +44,14 @@ If you pass a block you can configure additional parameters:
 
 3)	`task.output` - Define output directory. Default is `dist`.
 
-4)	`task.compress` - Set to true if you want pre-compressed assets. Default is false.
+4)	`task.manifest_name` - Set the name to be used for the `manifest.json`
 
-5)	`task.digest` - Set to true if you want to include a file digest in the file name of generated assets. Default is false.
-
-6)	`task.environment` - Set custom sprockets environment.
+5)	`task.environment` - Set custom sprockets environment.
 
 You can also customize the sprockets environment in the block to configure additional preprocessors or compressors.
 
 Note: Sprockets-standalone will always use a manifest.json even when asset digests are turned off. The manifest.json will be used to track changes. If you manually change the generated assets that will not be override when compiling assets unless there is also a change if the matching source files.
+
 You will need to remove generated assets (`rake assets:clobber`) to force regeneration of all assets.
 
 ## Contributing
